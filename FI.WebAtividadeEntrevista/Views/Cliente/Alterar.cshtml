@@ -1,0 +1,46 @@
+﻿@model WebAtividadeEntrevista.Models.ClienteModel
+@{
+    ViewBag.Title = "Alterar Cliente";
+}
+@section scripts{
+    <script>
+        var urlPost = '@Url.Action("Alterar", "Cliente", new { area = "" })';
+        var obj = @Html.Raw(Json.Encode(Model));
+        var urlRetorno = '@Url.Action("Index", "Cliente", new { area = "" })';
+
+        $(document).ready(function () {
+            $('#btnBeneficiarios').click(function () {
+                $.get('@Url.Action("IncluirBenef", "Beneficiario")', function (data) {
+                    $('#modalContainer').html(data); // Carrega o conteúdo da IncluirBenef.cshtml
+                    $('#myModal').modal('show'); // Mostra o modal
+                });
+            });
+        });
+    </script>
+    @Scripts.Render("~/bundles/altClientes")
+}
+<h2>@Html.Raw(ViewBag.Title)</h2>
+@Html.Partial("Forms")
+<div class="row">
+    <div class="col-lg-12">
+        <div class="pull-left">
+            <button type="button" class="btn btn-sm btn-primary" id="btnBeneficiarios">Beneficiários</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document" style="max-width:100%; width:1000px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Incluir Beneficiário</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalContainer">
+                <!-- Aqui será carregado o conteúdo da IncluirBenef.cshtml -->
+            </div>
+        </div>
+    </div>
+</div>

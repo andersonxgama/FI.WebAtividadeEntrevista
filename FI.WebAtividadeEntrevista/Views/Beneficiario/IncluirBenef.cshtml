@@ -1,0 +1,117 @@
+﻿<form id="formCadastro">
+    <div class="form-row align-items-center mb-2">
+        <div class="col">
+            <label class="sr-only" for="inputCPF">CPF</label>
+            <input type="text" class="form-control" id="inputCPF" placeholder="CPF" required>
+        </div>
+        <div class="col">
+            <label class="sr-only" for="inputNome">Nome</label>
+            <input type="text" class="form-control" id="inputNome" placeholder="Nome" required>
+        </div>
+        <div class="col-auto">
+            <button type="button" id="btnIncluir" class="btn btn-primary">Incluir</button>
+        </div>
+    </div>
+</form>
+
+<div id="gridContainer" class="mt-4">
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        $('#btnIncluir').click(function () {
+            var cpf = $('#inputCPF').val();
+            var nome = $('#inputNome').val();
+
+            if (!validaCPF(cpf)) {
+                alert('CPF inválido! Favor verificar a informação');
+                return;
+            }
+
+            $('#inputCPF').val('');
+            $('#inputNome').val('');
+
+            var newRow = $('<div class="row mb-2">' +
+                '<div class="col">' +
+                '<input type="text" class="form-control" value="' + cpf + '">' +
+                '</div>' +
+                '<div class="col">' +
+                '<input type="text" class="form-control" value="' + nome + '">' +
+                '</div>' +
+                '<div class="col-auto">' +
+                '<button class="btn btn-info btn-sm btnAlterar">Alterar</button>' +
+                '<button class="btn btn-danger btn-sm ml-2 btnExcluir">Excluir</button>' +
+                '</div>' +
+                '</div>');
+
+            $('#gridContainer').append(newRow);
+
+            if ($('#gridContainer').children().length === 1) {
+                var headerRow = $('<div class="row font-weight-bold">' +
+                    '<div class="col">CPF</div>' +
+                    '<div class="col">Nome</div>' +
+                    '<div class="col-auto">Ação</div>' +
+                    '</div>');
+                $('#gridContainer').prepend(headerRow);
+            }
+        });
+
+        $('#gridContainer').on('click', '.btnExcluir', function () {
+            $(this).closest('.row').remove();
+            // Se não houver mais linhas na grid, remover o cabeçalho
+            if ($('#gridContainer').children().length === 0) {
+                $('#gridContainer').html(''); // Limpa todo o conteúdo dentro de gridContainer
+            }
+        });
+
+        // Botão Alterar (não implementado)
+        $('#gridContainer').on('click', '.btnAlterar', function () {
+            // Implemente aqui a lógica para alterar os dados da linha
+            alert('Implemente a lógica para alterar os dados.');
+        });
+
+        function validaCPF(cpf) {
+            cpf = cpf.replace(/[^\d]/g, '');
+
+            if (cpf.length !== 11) {
+                return false;
+            }
+
+            if (/^(\d)\1+$/.test(cpf)) {
+                return false;
+            }
+
+            let sum = 0;
+            for (let i = 0; i < 9; i++) {
+                sum += parseInt(cpf.charAt(i)) * (10 - i);
+            }
+
+            let checkDigit1 = 11 - (sum % 11);
+            if (checkDigit1 > 9) {
+                checkDigit1 = 0;
+            }
+
+            if (parseInt(cpf.charAt(9)) !== checkDigit1) {
+                return false;
+            }
+
+            sum = 0;
+            for (let i = 0; i < 10; i++) {
+                sum += parseInt(cpf.charAt(i)) * (11 - i);
+            }
+
+            let checkDigit2 = 11 - (sum % 11);
+            if (checkDigit2 > 9) {
+                checkDigit2 = 0;
+            }
+
+            if (parseInt(cpf.charAt(10)) !== checkDigit2) {
+                return false;
+            }
+
+            return true;
+        }
+    });
+
+</script>
