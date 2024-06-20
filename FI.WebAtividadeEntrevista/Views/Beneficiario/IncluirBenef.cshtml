@@ -1,5 +1,5 @@
-﻿<form id="formCadastro">
-    <div class="form-row align-items-center mb-2">
+﻿<form id="formBeneficiario" method="post">
+    <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%;">
         <div class="col">
             <label class="sr-only" for="inputCPF">CPF</label>
             <input type="text" class="form-control" id="inputCPF" placeholder="CPF" required>
@@ -9,7 +9,7 @@
             <input type="text" class="form-control" id="inputNome" placeholder="Nome" required>
         </div>
         <div class="col-auto">
-            <button type="button" id="btnIncluir" class="btn btn-primary">Incluir</button>
+            <button type="submit" id="btnIncluir" class="btn btn-primary">Incluir</button>
         </div>
     </div>
 </form>
@@ -19,56 +19,150 @@
 
 <script>
 
-    $(document).ready(function () {
-        $('#btnIncluir').click(function () {
+    $(document).ready(function()
+    {
+        var cpfTeste = $('#formCadastro #CPF').val().replace('.', '').replace(/\D/g, '');
+
+        //LISTAR
+        $.ajax({
+            url: '@Url.Action("Listar", "Beneficiario", new { area = "" })',
+            method: 'POST',
+            data:
+            {
+                cpfCliente: cpfTeste
+            },
+            dataType: 'json',
+            success: function (response)
+            {
+                var beneficiarios = response.Records;
+
+                beneficiarios.forEach(function (beneficiario) {
+                    var id = beneficiario.Id;
+                    var cpf = beneficiario.CPF;
+                    var nome = beneficiario.Nome;
+
+                    criarHeader();
+                    criarNovaLinha(id, cpf, nome);
+                });
+            },
+            error:
+                function (r) {
+                    if (r.status == 400)
+                        ModalDialog("Ocorreu um erro", r.responseJSON);
+                    else if (r.status == 500)
+                        ModalDialog("Ocorreu um erro", "Ocorreu um erro interno no servidor.");
+            }
+        });
+
+        //INCLUIR
+        $('#btnIncluir').click(function(e)
+        {
+            e.preventDefault();
+
             var cpf = $('#inputCPF').val();
             var nome = $('#inputNome').val();
+            var cpfCliente = $('#formCadastro #CPF').val().replace('.', '').replace(/\D/g, '');
 
-            if (!validaCPF(cpf)) {
+            if (!validaCPF(cpf))
+            {
                 alert('CPF inválido! Favor verificar a informação');
                 return;
             }
 
-            $('#inputCPF').val('');
-            $('#inputNome').val('');
+            $.ajax({
+                url: '@Url.Action("Incluir", "Beneficiario", new { area = "" })',
+                method: "POST",
+                data: {
+                    "CPF": cpf,
+                    "NOME": nome,
+                    "CpfCliente": cpfCliente
+                },
+                error:
+                function (r) {
+                    if (r.status == 400)
+                        ModalDialog("Ocorreu um erro", r.responseJSON);
+                    else if (r.status == 500)
+                        ModalDialog("Ocorreu um erro", "Ocorreu um erro interno no servidor.");
+                },
+                success:
+                function (r) {
+                    ModalDialog("Sucesso!", r.message);
+                    criarHeader();
+                    criarNovaLinha(r.id, cpf, nome);
 
-            var newRow = $('<div class="row mb-2">' +
-                '<div class="col">' +
-                '<input type="text" class="form-control" value="' + cpf + '">' +
-                '</div>' +
-                '<div class="col">' +
-                '<input type="text" class="form-control" value="' + nome + '">' +
-                '</div>' +
-                '<div class="col-auto">' +
-                '<button class="btn btn-info btn-sm btnAlterar">Alterar</button>' +
-                '<button class="btn btn-danger btn-sm ml-2 btnExcluir">Excluir</button>' +
-                '</div>' +
-                '</div>');
-
-            $('#gridContainer').append(newRow);
-
-            if ($('#gridContainer').children().length === 1) {
-                var headerRow = $('<div class="row font-weight-bold">' +
-                    '<div class="col">CPF</div>' +
-                    '<div class="col">Nome</div>' +
-                    '<div class="col-auto">Ação</div>' +
-                    '</div>');
-                $('#gridContainer').prepend(headerRow);
-            }
+                    $('#inputCPF').val('');
+                    $('#inputNome').val('');
+                }
+            });
         });
 
+        //EXCLUIR
         $('#gridContainer').on('click', '.btnExcluir', function () {
-            $(this).closest('.row').remove();
-            // Se não houver mais linhas na grid, remover o cabeçalho
-            if ($('#gridContainer').children().length === 0) {
-                $('#gridContainer').html(''); // Limpa todo o conteúdo dentro de gridContainer
-            }
+
+            var idBeneficiario = $(this).closest('.row').find('#idBeneficiario').val();
+            var botaoExcluir = $(this);
+
+            $.ajax({
+                url: '@Url.Action("Excluir", "Beneficiario", new { area = "" })',
+                method: "POST",
+                data: {
+                    "idBeneficiario": idBeneficiario
+                },
+                error:
+                function (r) {
+                    if (r.status == 400)
+                        ModalDialog("Ocorreu um erro", r.responseJSON);
+                    else if (r.status == 500)
+                        ModalDialog("Ocorreu um erro", "Ocorreu um erro interno no servidor.");
+                },
+                success:
+                function (r) {
+                    ModalDialog("Sucesso!", r);
+
+                    botaoExcluir.closest('.row').remove();
+
+                    if ($('#gridContainer').children().length === 1)
+                    {
+                        $('#gridContainer').html('');
+                    }
+                }
+            });
         });
 
-        // Botão Alterar (não implementado)
+        //ALTERAR
         $('#gridContainer').on('click', '.btnAlterar', function () {
-            // Implemente aqui a lógica para alterar os dados da linha
-            alert('Implemente a lógica para alterar os dados.');
+
+            var idBeneficiario = $(this).closest('.row').find('#idBeneficiario').val();
+            var cpfBeneficiario = $(this).closest('.row').find('#cpfBeneficiario').val();
+            var nomeBeneficiario = $(this).closest('.row').find('#nomeBeneficiario').val();
+
+            $.ajax({
+                url: '@Url.Action("Alterar", "Beneficiario", new { area = "" })',
+                method: "POST",
+                data: {
+                    "idBeneficiario": idBeneficiario,
+                    "cpf": cpfBeneficiario.replace('.', '').replace(/\D/g, ''),
+                    "nome": nomeBeneficiario
+                },
+                error:
+                function (r) {
+                    if (r.status == 400)
+                        ModalDialog("Ocorreu um erro", r.responseJSON);
+                    else if (r.status == 500)
+                        ModalDialog("Ocorreu um erro", "Ocorreu um erro interno no servidor.");
+                },
+                success:
+                function (r) {
+                    ModalDialog("Sucesso!", r);
+
+                    $(this).closest('.row').remove();
+
+                    if ($('#gridContainer').children().length === 0)
+                    {
+                        $('#gridContainer').html('');
+                    }
+                }
+            });
         });
 
         function validaCPF(cpf) {
@@ -113,5 +207,58 @@
             return true;
         }
     });
+
+    function criarHeader() {
+        if ($('#gridContainer').children().length === 1) {
+            var header = $('<div class="font-weight-bold" style="padding-top:1em; display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%;">' +
+                '<div class="col">CPF</div>' +
+                '<div class="col">Nome</div>' +
+                '<div class="col-auto">Ação</div>' +
+                '</div>');
+            $('#gridContainer').prepend(header);
+        }
+    }
+
+    function criarNovaLinha(idBeneficiario, cpf, nome) {
+        var linha = $('<div class="mb-2" style="padding-top:1em; display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%;">' +
+            '<input type="hidden" id="idBeneficiario" value="' + idBeneficiario + '">' +
+            '<div class="col">' +
+            '<input type="text" id="cpfBeneficiario" class="form-control" value="' + cpf + '">' +
+            '</div>' +
+            '<div class="col">' +
+            '<input type="text" id="nomeBeneficiario" class="form-control" value="' + nome + '">' +
+            '</div>' +
+            '<div class="col-auto">' +
+            '<button class="btn btn-info btn-sm btnAlterar">Alterar</button>' +
+            '<button class="btn btn-danger btn-sm ml-2 btnExcluir">Excluir</button>' +
+            '</div>' +
+            '</div>');
+
+        $('#gridContainer').append(linha);
+    }
+
+    function ModalDialog(titulo, texto) {
+        var random = Math.random().toString().replace('.', '');
+        var texto = '<div id="' + random + '" class="modal fade">                                                               ' +
+            '        <div class="modal-dialog">                                                                                 ' +
+            '            <div class="modal-content">                                                                            ' +
+            '                <div class="modal-header">                                                                         ' +
+            '                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>         ' +
+            '                    <h4 class="modal-title">' + titulo + '</h4>                                                    ' +
+            '                </div>                                                                                             ' +
+            '                <div class="modal-body">                                                                           ' +
+            '                    <p>' + texto + '</p>                                                                           ' +
+            '                </div>                                                                                             ' +
+            '                <div class="modal-footer">                                                                         ' +
+            '                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>             ' +
+            '                                                                                                                   ' +
+            '                </div>                                                                                             ' +
+            '            </div><!-- /.modal-content -->                                                                         ' +
+            '  </div><!-- /.modal-dialog -->                                                                                    ' +
+            '</div> <!-- /.modal -->                                                                                        ';
+
+        $('body').append(texto);
+        $('#' + random).modal('show');
+    }
 
 </script>

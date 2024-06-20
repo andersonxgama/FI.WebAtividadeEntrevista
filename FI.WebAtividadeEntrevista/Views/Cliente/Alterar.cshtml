@@ -12,7 +12,7 @@
             $('#btnBeneficiarios').click(function () {
                 $.get('@Url.Action("IncluirBenef", "Beneficiario")', function (data) {
                     $('#modalContainer').html(data); // Carrega o conteúdo da IncluirBenef.cshtml
-                    $('#myModal').modal('show'); // Mostra o modal
+                    $('#myModal').modal('show');
                 });
             });
         });
@@ -30,7 +30,7 @@
 </div>
 
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document" style="max-width:100%; width:1000px;">
+    <div class="modal-dialog" role="document" style="max-width:100%;">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="myModalLabel">Incluir Beneficiário</h4>

@@ -20,6 +20,8 @@ namespace FI.WebAtividadeEntrevista.Models
         [Required]
         public string CPF { get; set; }
 
+        public string CpfCliente { get; set; }
+
         [ForeignKey("Cliente")]
         public long IdCliente { get; set; }
 

@@ -14,6 +14,8 @@ namespace FI.AtividadeEntrevista.DML
 
         public string CPF { get; set; }
 
+        public string CpfCliente { get; set; }
+
         public long IdCliente { get; set; }
 
         public Cliente Cliente { get; set; }
